@@ -5,7 +5,7 @@ import static sideshop.RandomUtil.*;
 
 public class Logic {
     static int gold = STARTING_GOLD;
-    static int redGemCount = 0;
+    static int gemCount = 0;
     static Hero[] playerGrid = new Hero[GRID_SIZE];
     static Hero[] shopGrid = new Hero[SHOP_SIZE];
     static int[][] shopHeroPool = new int[TIER_COUNT][UNIQUE_HERO_PER_TIER];
@@ -36,9 +36,11 @@ public class Logic {
                 break;
             }
         }
+        sellRemainingHeroes();
 
-        System.out.println(String.format("%,d red gems obtained from %,d gold", redGemCount, STARTING_GOLD - gold));
+        System.out.println(String.format("%,d %s gems obtained from %,d gold", gemCount, COLLECT_RED_GEMS ? "red" : "blue", STARTING_GOLD - gold));
     }
+
 
     private static void initializeHeroes() {
         for (int i = 0; i < heroes.length; i++) {
@@ -109,7 +111,7 @@ public class Logic {
     private static boolean canBuyAHero() {
         for (Hero hero : shopGrid) {
             if (hero != null) {
-                if (gold >= hero.tier && (COLLECT_TIER[hero.tier] || FLIP_NON_COLLECT_HEROES)) {
+                if (gold >= hero.tier + 1 && (COLLECT_TIER[hero.tier] || FLIP_NON_COLLECT_HEROES)) {
                     return true;
                 }
             }
@@ -131,9 +133,9 @@ public class Logic {
         if (FLIP_NON_COLLECT_HEROES) {
             for (int i = 0; i < shopGrid.length; i++) {
                 if (shopGrid[i] != null) {
-                    if (!COLLECT_TIER[shopGrid[i].tier]) { //Flip the hero
+                    if (!COLLECT_TIER[shopGrid[i].tier] && gold >= shopGrid[i].tier + 1) { //Flip the hero
                         gold -= shopGrid[i].tier + 1;
-                        redGemCount += RED_GEM_REWARDS[shopGrid[i].tier][0];
+                        gemCount += RED_GEM_REWARDS[shopGrid[i].tier][0];
                         shopHeroPool[shopGrid[i].tier][shopGrid[i].id]++;
                         shopGrid[i] = null;
                         shopHeroCount--;
@@ -145,14 +147,16 @@ public class Logic {
 
     private static void buyHero(int shopIndex) {
         Hero hero = shopGrid[shopIndex];
-        shopGrid[shopIndex] = null;
-        playerHeroPool[hero.tier][hero.id]++;
-        if (shouldCombine(hero)) {
-            combineHero(hero);
-        } else {
-            addHero(hero);
+        if (gold >= hero.tier + 1) {
+            shopGrid[shopIndex] = null;
+            playerHeroPool[hero.tier][hero.id]++;
+            gold -= hero.tier + 1;
+            if (shouldCombine(hero)) {
+                combineHero(hero);
+            } else {
+                addHero(hero);
+            }
         }
-
     }
 
     private static boolean shouldCombine(Hero hero) {
@@ -205,7 +209,7 @@ public class Logic {
 
     private static void sellHero(int playerIndex) {
         Hero hero = playerGrid[playerIndex];
-        redGemCount += hero.redGemSellValue();
+        gemCount += hero.gemSellValue();
         removeHero(playerIndex);
         playerHeroPool[hero.tier][hero.id] -= Math.pow(NUM_TO_UPGRADE, hero.stars);
         shopHeroPool[hero.tier][hero.id] += Math.pow(NUM_TO_UPGRADE, hero.stars);
@@ -237,14 +241,14 @@ public class Logic {
         for (int i = 0; i < shopGrid.length; i++) {
             if (shopGrid[i] != null) {
                 int heroValue = playerHeroPool[shopGrid[i].tier][shopGrid[i].id];
-                if (heroValue < mostWorthlessHeroValue) {
+                if (heroValue < mostWorthlessHeroValue && gold >= shopGrid[i].tier + 1) {
                     mostWorthlessHeroValue = heroValue;
                     mostWorthlessHeroPosition = i;
                 }
             }
         }
 
-        if(mostWorthlessHeroPosition == -1){ //nothing to buy
+        if (mostWorthlessHeroPosition == -1) { //nothing to buy
             return;
         }
         buyHero(mostWorthlessHeroPosition);
@@ -254,5 +258,13 @@ public class Logic {
     private static void rerollShop() {
         gold -= REROLL_COST;
         fillShop();
+    }
+
+    private static void sellRemainingHeroes() {
+        for (int i = 0; i < playerGrid.length; i++) {
+            if (playerGrid[i] != null) {
+                sellHero(i);
+            }
+        }
     }
 }

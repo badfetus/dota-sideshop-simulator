@@ -1,7 +1,7 @@
 package sideshop;
 
 public class Data {
-    public static final int STARTING_GOLD = 10_000_000;
+    public static final int STARTING_GOLD = 100_000_000;
 
     public static final int[][] RED_GEM_REWARDS = {
             {1, 3, 18},
@@ -11,7 +11,16 @@ public class Data {
             {7, 110, 0},
     };
 
-    public static final boolean[] COLLECT_TIER = {false, true, false, false, false};
+    public static final int[][] BLUE_GEM_REWARDS = {
+            {0,0,0},
+            {0,0,0},
+            {0,0,0},
+            {0,0,1},
+            {0,0,3},
+    };
+
+    public static final boolean COLLECT_RED_GEMS = true;
+    public static final boolean[] COLLECT_TIER = {false, true, true, false, false};
     public static final boolean FLIP_NON_COLLECT_HEROES = false;
 
     public static final int GRID_SIZE = 9;
