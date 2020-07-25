@@ -239,7 +239,7 @@ public class Logic {
         int mostWorthlessHeroPosition = -1;
 
         for (int i = 0; i < shopGrid.length; i++) {
-            if (shopGrid[i] != null) {
+            if (shopGrid[i] != null && COLLECT_TIER[shopGrid[i].tier]) {
                 int heroValue = playerHeroPool[shopGrid[i].tier][shopGrid[i].id];
                 if (heroValue < mostWorthlessHeroValue && gold >= shopGrid[i].tier + 1) {
                     mostWorthlessHeroValue = heroValue;

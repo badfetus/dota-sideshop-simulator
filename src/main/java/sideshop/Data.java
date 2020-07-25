@@ -20,7 +20,7 @@ public class Data {
     };
 
     public static final boolean COLLECT_RED_GEMS = true;
-    public static final boolean[] COLLECT_TIER = {false, true, true, false, false};
+    public static final boolean[] COLLECT_TIER = {false, false, true, false, false};
     public static final boolean FLIP_NON_COLLECT_HEROES = false;
 
     public static final int GRID_SIZE = 9;
@@ -28,7 +28,7 @@ public class Data {
 
     public static final int TIER_COUNT = 5;
     public static final int[] TIER_WEIGHTS = {72, 19, 5, 3, 1};
-    public static final int TOTAL_UNIT_AMOUNT_IN_POOL = 10;
+    public static final int TOTAL_UNIT_AMOUNT_IN_POOL = 18;
     public static final int UNIQUE_HERO_PER_TIER = 5;
     public static final int NUM_TO_UPGRADE = 3;
     public static final int MAX_STARS = 3;
