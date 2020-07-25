@@ -16,6 +16,7 @@ public class Logic {
 
     static int lastUpdate = STARTING_GOLD + 10;
     static int percentComplete = 0;
+    static boolean madeAnAction = false;
 
     public static void main(String[] args) {
         initializeHeroes();
@@ -93,16 +94,20 @@ public class Logic {
 
     private static void buyAndSellHeroes() {
         while (true) {
-            boolean canBuyAHero = canBuyAHero();
+            madeAnAction = false;
             buyHeroesToCombine();
             if (playerHeroCount == GRID_SIZE) {
                 sellMostWorthlessHero();
             } else {
-                flipNonCollectHeroes();
-                buyMostWorthlessHero();
+                if (FLIP_NON_COLLECT_HEROES) {
+                    flipNonCollectHeroes();
+                    buyMostWorthlessHero();
+                } else {
+                    buyMostWorthwhileHero();
+                }
             }
 
-            if (!canBuyAHero) {
+            if (!madeAnAction) {
                 break;
             }
         }
@@ -130,19 +135,19 @@ public class Logic {
     }
 
     private static void flipNonCollectHeroes() {
-        if (FLIP_NON_COLLECT_HEROES) {
-            for (int i = 0; i < shopGrid.length; i++) {
-                if (shopGrid[i] != null) {
-                    if (!COLLECT_TIER[shopGrid[i].tier] && gold >= shopGrid[i].tier + 1) { //Flip the hero
-                        gold -= shopGrid[i].tier + 1;
-                        gemCount += RED_GEM_REWARDS[shopGrid[i].tier][0];
-                        shopHeroPool[shopGrid[i].tier][shopGrid[i].id]++;
-                        shopGrid[i] = null;
-                        shopHeroCount--;
-                    }
+        for (int i = 0; i < shopGrid.length; i++) {
+            if (shopGrid[i] != null) {
+                if (!COLLECT_TIER[shopGrid[i].tier] && gold >= shopGrid[i].tier + 1) { //Flip the hero
+                    gold -= shopGrid[i].tier + 1;
+                    gemCount += RED_GEM_REWARDS[shopGrid[i].tier][0];
+                    shopHeroPool[shopGrid[i].tier][shopGrid[i].id]++;
+                    shopGrid[i] = null;
+                    shopHeroCount--;
+                    madeAnAction = true;
                 }
             }
         }
+
     }
 
     private static void buyHero(int shopIndex) {
@@ -156,6 +161,7 @@ public class Logic {
             } else {
                 addHero(hero);
             }
+            madeAnAction = true;
         }
     }
 
@@ -208,6 +214,7 @@ public class Logic {
     }
 
     private static void sellHero(int playerIndex) {
+        madeAnAction = true;
         Hero hero = playerGrid[playerIndex];
         gemCount += hero.gemSellValue();
         removeHero(playerIndex);
@@ -217,6 +224,18 @@ public class Logic {
 
     private static void sellMostWorthlessHero() {
         int mostWorthlessHeroValue = 99999999;
+        if (!FLIP_NON_COLLECT_HEROES) {
+            int highestBuyValue = 0;
+            for (int i = 0; i < shopGrid.length; i++) {
+                if (shopGrid[i] != null) {
+                    int heroValue = playerHeroPool[shopGrid[i].tier][shopGrid[i].id];
+                    if (COLLECT_TIER[shopGrid[i].tier] && heroValue > highestBuyValue) {
+                        highestBuyValue = heroValue;
+                    }
+                }
+            }
+            mostWorthlessHeroValue = highestBuyValue + 1; //this means we can technically end up selling and then buying the same hero but this is negligible.
+        }
         int mostWorthlessHeroPosition = -1;
         int mostWorthlessHeroStars = 99999999;
 
@@ -231,6 +250,9 @@ public class Logic {
             }
         }
 
+        if (mostWorthlessHeroPosition == -1) { //nothing we want to sell
+            return;
+        }
         sellHero(mostWorthlessHeroPosition);
     }
 
@@ -252,6 +274,26 @@ public class Logic {
             return;
         }
         buyHero(mostWorthlessHeroPosition);
+    }
+
+    private static void buyMostWorthwhileHero() {
+        int mostWorthwhileHeroValue = -1;
+        int mostWorthwhileHeroPosition = -1;
+
+        for (int i = 0; i < shopGrid.length; i++) {
+            if (shopGrid[i] != null && COLLECT_TIER[shopGrid[i].tier]) {
+                int heroValue = playerHeroPool[shopGrid[i].tier][shopGrid[i].id];
+                if (heroValue > mostWorthwhileHeroValue && gold >= shopGrid[i].tier + 1) {
+                    mostWorthwhileHeroValue = heroValue;
+                    mostWorthwhileHeroPosition = i;
+                }
+            }
+        }
+
+        if (mostWorthwhileHeroPosition == -1) { //nothing to buy
+            return;
+        }
+        buyHero(mostWorthwhileHeroPosition);
     }
 
 
